@@ -213,7 +213,7 @@ Recommended:
 
 The audio file stays local and is never uploaded.
 
-![Goal achieved audio settings](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/07-goal-audio-settings.png)
+![Goal achieved audio settings](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/07-goal-audio-settings.pn.png)
 
 ### 7. Save and test
 
