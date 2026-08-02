@@ -71,7 +71,7 @@ When the creator reaches the goal, their stream automatically disappears from th
 - Live-user list sorted from lowest progress upward.
 - **Version 2** footer with a link to `streemrz.com`.
 
-![Rumble Chatters Version 2 popup](docs/images/02-extension-popup.png)
+![Rumble Chatters Version 2 popup](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/02-extension-popup.png)
 
 ---
 
@@ -123,7 +123,7 @@ Then:
 3. Select the extracted extension folder containing `manifest.json`.
 4. Pin **Rumble Chatters** to the Chrome toolbar.
 
-![Loading the unpacked Chrome extension](docs/images/01-chrome-load-unpacked.png)
+![Loading the unpacked Chrome extension](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/01-chrome-load-unpacked.png)
 
 ### 3. Open Options
 
@@ -154,9 +154,9 @@ The extension opens the normal Streemrz.com authentication and consent page.
 
 The extension never receives the user's password or MFA response.
 
-![Authenticate with Streemrz button in Options](docs/images/03-extension-options-authenticate.png)
+![Authenticate with Streemrz button in Options](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/03-extension-options-authenticate.png)
 
-![Streemrz Rumble Chatters consent screen](docs/images/04-streemrz-consent.png)
+![Streemrz Rumble Chatters consent screen](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/04-streemrz-consent.png)
 
 After approval, Options should show:
 
@@ -170,7 +170,7 @@ Enrolled
 private key extractable: no
 ```
 
-![Authenticated Streemrz account and enrolled device](docs/images/05-extension-authenticated.png)
+![Authenticated Streemrz account and enrolled device](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/05-extension-authenticated.png)
 
 ### 5. Add the Rumble Livestreaming API URL
 
@@ -182,7 +182,7 @@ Rumble Livestreaming API URL
 
 This value stays inside the browser extension and is not uploaded to the Chatters backend.
 
-![Rumble Livestreaming API URL configuration](docs/images/06-rumble-api-configuration.png)
+![Rumble Livestreaming API URL configuration](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/06-rumble-api-configuration.png)
 
 ### 6. Configure optional settings
 
@@ -213,7 +213,7 @@ Recommended:
 
 The audio file stays local and is never uploaded.
 
-![Goal achieved audio settings](docs/images/07-goal-audio-settings.png)
+![Goal achieved audio settings](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/07-goal-audio-settings.png)
 
 ### 7. Save and test
 
