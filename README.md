@@ -788,42 +788,6 @@ Use **Test Audio** in Options to verify the selected file.
 
 ---
 
-# Suggested screenshots
-
-Store public screenshots under:
-
-```text
-docs/images/
-```
-
-Suggested filenames:
-
-```text
-01-chrome-load-unpacked.png
-02-version-3-popup.png
-03-you-confidence-check.png
-04-authenticate-with-streemrz.png
-05-streemrz-consent.png
-06-authenticated-and-enrolled.png
-07-rumble-api-configuration.png
-08-goal-audio-settings.png
-09-dual-metrics.png
-10-both-goals-needed.png
-11-chatters-only-needed.png
-12-watch-hours-only-needed.png
-```
-
-Before publishing screenshots, hide or crop:
-
-- your private Rumble Livestreaming API URL;
-- API keys;
-- activation/recovery codes;
-- OAuth callback URLs containing temporary `code` or `state` values;
-- browser credential identifiers;
-- email addresses or other personal information you do not intend to publish.
-
----
-
 # Version history
 
 ## Version 3.0.1
