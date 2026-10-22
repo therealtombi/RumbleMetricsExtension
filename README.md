@@ -1,8 +1,11 @@
-# Rumble Chatters Goal Monitor — Version 2
+# Rumble Chatters Goal Monitor — Version 3.0.1
 
-A Chrome extension that helps live Rumble creators track and reach the monthly **Total unique chatters** goal.
+A Chrome extension that helps live Rumble creators track the two monthly Creator Program metrics used by Rumble Chatters:
 
-The extension reads the creator's own Rumble dashboard locally, checks whether they are live through their private Rumble Livestreaming API URL, and shares only the derived status needed to display creators who are currently live and still below their goal.
+- **Total unique chatters this month**
+- **Hours watched this month**
+
+The extension reads these metrics from the creator's own Rumble earnings dashboard, checks whether the creator is currently live using their private Rumble Livestreaming API URL, and sends only the derived status needed to power the shared support list.
 
 Service information:
 
@@ -12,13 +15,38 @@ https://chatters.streemrz.com
 
 ---
 
-## What the extension does
+## What's new in Version 3
 
-Rumble Chatters tracks this Rumble dashboard metric:
+Version 3 expands Rumble Chatters from a single chatter goal into a dual-goal monitor.
 
-```text
-Total unique chatters this month
-```
+### Version 3.0.1 highlights
+
+- Tracks **Unique Chatters** and **Watch Hours**.
+- Correctly targets the exact Rumble metric labelled **Hours watched this month**.
+- Ignores other hour-based metrics such as **Hours streamed from Rumble Studio**.
+- Understands compact Rumble values such as:
+  - `5.41K` → `5410`
+  - `1.2K` → `1200`
+  - `1.5M` → `1500000`
+- Preserves normal decimal values such as `381.3`.
+- Shows the current creator in the shared live list with a **YOU** marker.
+- Shows exactly which goal or goals are still required.
+- Refreshes dashboard metrics every **10 minutes while live only**.
+- Resets both monthly metrics at the beginning of each Rumble month.
+- Keeps Version 2 clients compatible with the shared service.
+- Version 1 is retired.
+
+<!-- Screenshot suggestion:
+![Rumble Chatters Version 3 popup](docs/images/02-version-3-popup.png)
+-->
+
+---
+
+# Tracked Creator Program goals
+
+Rumble Chatters currently tracks these two values from the Rumble Creator Program section of the earnings dashboard.
+
+## 1. Total unique chatters this month
 
 Example:
 
@@ -26,32 +54,183 @@ Example:
 42 / 75 chatters
 ```
 
-A creator appears in **Live users needing chatters** only when:
+In this example:
 
 ```text
-The creator is currently live
-AND the creator is below the chatter goal
-AND scheduled reporting is enabled
-AND the browser installation is authenticated and enrolled
+Current: 42
+Goal:    75
+Needed:  33
 ```
 
-When the creator reaches the goal or goes offline, their stream is automatically removed from the shared list.
+The current target is:
+
+```text
+75 unique chatters
+```
 
 ---
 
-## Version 2 features
+## 2. Hours watched this month
 
-- **Open Dashboard** and **Open Options** buttons at the top of the popup.
-- Secure authentication through a Streemrz.com account.
-- Per-browser cryptographic device identity.
-- No permanent shared API secret inside the extension.
-- Automatic five-minute reporting.
-- Automatic first-of-month reset using New York time.
-- Optional local goal-achieved audio.
-- Live-user list sorted from lowest progress upward.
-- **Version 2** footer with a link to `streemrz.com`.
+Example:
 
-![Rumble Chatters Version 2 popup](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/02-extension-popup.png)
+```text
+381.3 / 500 hours
+```
+
+In this example:
+
+```text
+Current: 381.3
+Goal:    500
+Needed:  118.7 hours
+```
+
+The current target is:
+
+```text
+500 watch hours
+```
+
+Rumble may display larger values using compact notation.
+
+For example:
+
+```text
+5.41K / 500 hours
+```
+
+Rumble Chatters converts this to:
+
+```text
+5410 / 500 hours
+```
+
+so the goal is correctly recognised as achieved.
+
+Rumble notes on the dashboard that **Hours watched may take up to 24 hours to fully process**, so the displayed Watch Hours value may lag behind current activity.
+
+---
+
+# Which creators appear in the live support list?
+
+A creator is shown when:
+
+```text
+The creator is currently live
+AND
+the browser installation is authenticated and enrolled
+AND
+scheduled reporting is enabled
+AND
+at least one tracked goal is still outstanding
+```
+
+The two goals are evaluated independently.
+
+| Chatters | Watch Hours | Result |
+|---|---|---|
+| Below goal | Below goal | Show both reasons |
+| Below goal | Goal achieved | Show Chatters only |
+| Goal achieved | Below goal | Show Watch Hours only |
+| Goal achieved | Goal achieved | Remove from support list |
+
+### Example — both goals needed
+
+```text
+Needs support
+
+33 chatters needed
+118.7 watch hours needed
+```
+
+### Example — Chatters only
+
+```text
+Needs support
+
+33 chatters needed
+```
+
+### Example — Watch Hours only
+
+```text
+Needs support
+
+118.7 watch hours needed
+```
+
+Once both goals are achieved, the creator no longer appears in the support list.
+
+---
+
+# The YOU confidence check
+
+Version 3 deliberately shows your own live stream in the shared list when you still need support.
+
+Your own card is marked:
+
+```text
+YOU
+```
+
+This provides an immediate confidence check that:
+
+- your extension is reporting successfully;
+- your live status has been detected;
+- your current metrics were accepted;
+- the backend considers you eligible for the support list; and
+- other Rumble Chatters users can see your stream.
+
+This is intentional behaviour. Version 2 previously filtered the current user out of the list.
+
+<!-- Screenshot suggestion:
+![Current creator shown with YOU badge](docs/images/03-you-confidence-check.png)
+-->
+
+---
+
+# Automatic metric refresh
+
+Version 3 checks for updates every:
+
+```text
+10 minutes
+```
+
+The automatic dashboard capture only runs while the Rumble Livestreaming API reports that the creator is live.
+
+## When offline
+
+```text
+Check Rumble live status
+        ↓
+Offline
+        ↓
+Report offline state
+        ↓
+Do not open the earnings dashboard
+```
+
+## When live
+
+```text
+Check Rumble live status
+        ↓
+Live
+        ↓
+Load the Rumble earnings dashboard
+        ↓
+Read Chatters + Watch Hours
+        ↓
+Send the signed status report
+        ↓
+Close the temporary dashboard capture
+```
+
+If the Rumble earnings dashboard is already open, the extension can reuse the available dashboard page.
+
+When another page is required, Chrome does not provide a true invisible authenticated-tab API. Rumble Chatters therefore uses a short-lived, minimised/unfocused dashboard capture and closes it after the metrics are read.
 
 ---
 
@@ -66,7 +245,7 @@ Before installing, you need:
 - Access to your own Rumble earnings dashboard.
 - Your private Rumble Livestreaming API URL.
 
-Your Rumble API URL must:
+Your Rumble Livestreaming API URL must:
 
 - use HTTPS;
 - be hosted on `rumble.com`; and
@@ -78,7 +257,7 @@ Your Rumble API URL must:
 
 ### 1. Download and extract the extension
 
-Download the latest full extension ZIP from the project release page.
+Download the latest **Version 3.0.1 Full** package from the project release page.
 
 Extract it to a permanent folder.
 
@@ -99,19 +278,17 @@ Then:
 3. Select the extracted folder containing `manifest.json`.
 4. Pin **Rumble Chatters** to the Chrome toolbar.
 
-![Loading the unpacked Chrome extension](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/01-chrome-load-unpacked.png)
+<!-- Screenshot suggestion:
+![Load unpacked extension](docs/images/01-chrome-load-unpacked.png)
+-->
 
 ### 3. Open Options
 
-Click the extension icon, then select **Open Options**.
-
-The extension uses the fixed backend:
+Click the extension icon and select:
 
 ```text
-https://chatters.streemrz.com
+Open Options
 ```
-
-The backend address cannot be changed to an arbitrary service.
 
 ### 4. Authenticate with Streemrz
 
@@ -121,65 +298,65 @@ Click:
 Authenticate with Streemrz
 ```
 
-The extension opens the normal Streemrz.com login and consent page.
+The extension opens the normal Streemrz.com authentication flow.
 
-- When you are already signed into Streemrz, the existing browser session is reused.
+- If you are already signed in to Streemrz, the existing browser session can be reused.
 - Otherwise, Streemrz asks for your username, password and configured MFA.
-- Streemrz then displays an approval page for Rumble Chatters.
-- Press **Authorize** to bind this browser installation to your account.
+- Streemrz then displays the Rumble Chatters permission screen.
+- Press **Authorize** to connect the browser installation.
 
-The extension never receives your password or MFA response.
+The extension does **not** receive your Streemrz password or MFA response.
 
-![Authenticate with Streemrz button in Options](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/03-extension-options-authenticate.png)
+<!-- Screenshot suggestion:
+![Authenticate with Streemrz](docs/images/04-authenticate-with-streemrz.png)
 
-![Streemrz Rumble Chatters consent screen](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/04-streemrz-consent.png)
+![Streemrz consent screen](docs/images/05-streemrz-consent.png)
+-->
 
-After approval, Options should show:
+After successful authentication, Options should show the Streemrz account as authenticated and the secure device connection as enrolled.
 
-```text
-Streemrz account
-Authenticated
+<!-- Screenshot suggestion:
+![Authenticated and enrolled](docs/images/06-authenticated-and-enrolled.png)
+-->
 
-Secure device connection
-Enrolled
+### 5. Add the Rumble Livestreaming API URL
 
-private key extractable: no
-```
-
-![Authenticated Streemrz account and enrolled device](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/05-extension-authenticated.png)
-
-### 5. Add your Rumble Livestreaming API URL
-
-Paste your complete private Rumble Livestreaming API URL into:
+Paste your private Rumble Livestreaming API URL into:
 
 ```text
 Rumble Livestreaming API URL
 ```
 
-This value stays inside your browser extension and is not uploaded to the Chatters service.
+This URL stays inside your browser extension and is not uploaded to the Rumble Chatters backend.
 
-![Rumble Livestreaming API URL configuration](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/06-rumble-api-configuration.png)
+<!-- Screenshot suggestion:
+![Rumble API configuration](docs/images/07-rumble-api-configuration.png)
+-->
 
 ### 6. Configure optional settings
 
 #### Display name override
 
-Leave blank to use the name returned by the Rumble API, or enter a preferred display name.
+Leave blank to use the name returned by the Rumble API, or enter your preferred display name.
 
-#### Scheduled five-minute reporting
+#### Scheduled reporting
 
-Keep this enabled for normal use.
+Keep scheduled reporting enabled for normal use.
 
-When enabled, the extension periodically:
+Version 3 uses a **10-minute interval**.
 
-1. checks the local Rumble dashboard value;
-2. checks your current live status;
+The extension:
+
+1. checks whether you are live;
+2. obtains the current dashboard metrics when required;
 3. creates a securely signed status report; and
-4. sends the derived status to the shared service.
+4. sends only the derived status required by the shared service.
 
 #### Goal-achieved audio
 
-You may select a local MP3, WAV or OGG file to play when the goal is reached.
+You may select a local MP3, WAV or OGG file to play when your monthly Rumble Chatters goals are achieved.
+
+The audio file remains local to the browser extension.
 
 Recommended settings:
 
@@ -187,9 +364,17 @@ Recommended settings:
 - starting volume: 40–60%; and
 - **Play once per stream/month** enabled.
 
-The audio file stays local and is never uploaded.
+In Version 3, the overall goal is achieved when:
 
-![Goal achieved audio settings](https://github.com/therealtombi/RumbleChattersExtension/blob/main/docs/images/07-goal-audio-settings.png)
+```text
+Chatters >= 75
+AND
+Watch Hours >= 500
+```
+
+<!-- Screenshot suggestion:
+![Goal achieved audio settings](docs/images/08-goal-audio-settings.png)
+-->
 
 ### 7. Save and test
 
@@ -199,7 +384,7 @@ Click:
 Save & Test
 ```
 
-A successful result confirms that the configuration was saved and a secure report was accepted.
+A successful result confirms that the configuration is valid and the secure connection is working.
 
 ### 8. Open the Rumble earnings dashboard
 
@@ -209,120 +394,176 @@ Open:
 https://rumble.com/account/dashboard?type=earnings&interval=30
 ```
 
-The extension reads the visible **Total unique chatters this month** metric from this page.
+Allow the page to load completely, then open Rumble Chatters and press refresh.
 
-After opening the dashboard for the first time, press the refresh button in the extension popup.
+The popup should show both:
+
+```text
+Unique Chatters
+x / 75
+```
+
+and:
+
+```text
+Watch Hours
+x / 500
+```
+
+<!-- Screenshot suggestion:
+![Dual metrics displayed](docs/images/09-dual-metrics.png)
+-->
 
 ---
 
-## Upgrading an existing unpacked installation
+# Updating an existing installation
 
-When an update is supplied as a differential patch:
+## Updating from Version 3.0.0 to Version 3.0.1
 
-1. Back up the current extension folder.
-2. Extract the differential ZIP.
-3. Copy its files over the existing extension folder.
+Use the Version 3.0.1 differential/hotfix package.
+
+1. Back up your existing extension folder.
+2. Extract the Version 3.0.1 patch.
+3. Copy the updated files over the existing extension.
 4. Do **not** uninstall the extension.
 5. Open `chrome://extensions`.
 6. Press **Reload** on Rumble Chatters.
+7. Reload the Rumble earnings dashboard.
+8. Open Rumble Chatters and press refresh.
+
+Version 3.0.1 clears the previously cached **Watch Hours** value once so that an incorrect Version 3.0.0 Hours Streamed capture cannot remain as the monthly maximum.
+
+It does **not** clear:
+
+- your Chatters value;
+- Streemrz authentication;
+- browser installation identity;
+- non-extractable device key;
+- Rumble API URL;
+- selected audio; or
+- normal extension preferences.
+
+---
+
+## Updating from Version 2 to Version 3
+
+When upgrading an existing Version 2 installation:
+
+1. Back up the current extension folder.
+2. Extract the Version 3 full/differential update as supplied.
+3. Copy the new files over the existing extension folder.
+4. Do **not** uninstall the extension.
+5. Open `chrome://extensions`.
+6. Press **Reload**.
 7. Open Options.
-8. Complete any newly requested authentication step.
+8. Confirm your existing Streemrz authentication.
 9. Press **Save & Test**.
+10. Open the Rumble earnings dashboard and refresh once.
 
-Not uninstalling helps preserve:
+Not uninstalling helps preserve your:
 
-- the installation identity;
-- the non-extractable private key;
-- the Rumble API URL;
-- the selected audio clip; and
+- installation identity;
+- non-extractable private key;
+- Streemrz account binding;
+- Rumble API URL;
+- selected audio; and
 - extension preferences.
 
 ---
 
-# Using Rumble Chatters
+# Popup behaviour
 
-## Popup controls
+## Open Dashboard
 
-The two primary actions are displayed at the top:
+Opens the Rumble earnings dashboard used to read the Creator Program metrics.
 
-- **Open Dashboard** — opens the Rumble earnings dashboard.
-- **Open Options** — opens authentication and configuration.
+## Open Options
 
-The refresh button performs an immediate local check and report.
+Opens authentication and extension configuration.
 
-## Your chatter goal
+## Refresh
 
-The popup displays:
+Runs an immediate local metric check and status report.
 
-- current monthly chatter count;
-- goal;
-- percentage progress;
-- number still required; and
-- achieved or incomplete status.
+---
+
+# Your goals
+
+The popup shows separate progress information for:
+
+## Unique Chatters
 
 Example:
 
 ```text
 42 / 75
-33 more unique chatters needed
+33 chatters needed
 56%
 ```
 
-## Live users needing chatters
+## Watch Hours
 
-Only creators who are live and below target are shown.
-
-The list is sorted from the lowest percentage progress to the highest, helping users prioritise creators who need the most support.
-
-Each card may show:
-
-- avatar;
-- Rumble username or display name;
-- stream title;
-- current count and target;
-- number still needed;
-- live badge; and
-- **Watch** button.
-
-Once a creator reaches the goal or goes offline, their stream is removed from the list.
-
----
-
-## Monthly reset
-
-The local monthly chatter state resets at:
+Example:
 
 ```text
-00:00 America/New_York on the first day of each month
+381.3 / 500
+118.7 watch hours needed
+76%
 ```
 
-This automatically handles both EST and EDT.
+A value above the goal remains valid and is shown as achieved.
 
-At the reset boundary, the extension:
+Example:
 
-1. changes the displayed chatter count to `0`;
-2. clears the previous month's cached result;
-3. reports the new monthly state;
-4. reloads an open Rumble earnings dashboard without using its cache; and
-5. rescans the dashboard shortly afterward.
-
-The extension also checks for a missed rollover when Chrome starts, the extension updates, a scheduled report runs, or the dashboard provides a new metric.
-
-A stale dashboard result from the previous month is rejected rather than restoring the old count.
+```text
+5410 / 500
+Goal achieved
+100%+
+```
 
 ---
 
-# Account and device controls
+# Monthly reset
 
-## Re-authenticate with Streemrz
+Both tracked monthly metrics reset at:
 
-Use **Re-authenticate with Streemrz** to confirm or refresh the current account connection.
+```text
+00:00 America/New_York
+on the first day of each month
+```
 
-## Disconnect account
+Using the `America/New_York` timezone automatically handles EST and EDT.
 
-**Disconnect account** removes the Streemrz account binding from that browser installation.
+At the monthly boundary, Rumble Chatters resets the local monthly state for:
 
-Reporting will not continue until the browser is authenticated again.
+```text
+Unique Chatters
+Watch Hours
+```
+
+and obtains fresh values from the Rumble dashboard.
+
+The extension also checks for a missed rollover when Chrome starts, the extension updates, scheduled reporting runs, or a new dashboard metric is captured.
+
+A stale value from the previous month is rejected rather than restoring the old monthly result.
+
+---
+
+# Version compatibility
+
+The shared Rumble Chatters service currently supports:
+
+| Extension generation | Status | Metrics |
+|---|---|---|
+| Version 1 | Retired | Unsupported |
+| Version 2 | Supported | Unique Chatters |
+| Version 3 | Full support | Unique Chatters + Watch Hours |
+
+Version 2 users can continue using the service.
+
+However, Version 2 does not understand Watch Hours. A Version 2 user may therefore not see a creator whose Chatters goal is already achieved but whose Watch Hours goal is still outstanding.
+
+Version 3 is recommended for the complete support list.
 
 ---
 
@@ -336,148 +577,218 @@ The following remains in your browser:
 - Rumble API key contained in that URL;
 - local goal-achieved audio file;
 - non-extractable device private key;
-- extension preferences; and
-- Rumble dashboard cookies and session data.
+- extension preferences;
+- Rumble dashboard cookies; and
+- Rumble browser session data.
 
-## Data never given to the extension
+## Streemrz authentication
 
-The extension never receives or stores:
+The extension never receives or stores your:
 
 - Streemrz password;
-- MFA response;
-- Streemrz session cookie;
-- backend OAuth client secret; or
-- browser login credentials.
+- MFA response; or
+- Streemrz login session cookie.
 
-Authentication is handled on Streemrz.com.
+Authentication is performed through Streemrz.com.
 
 ## Data used by the shared service
 
-The shared service stores only the account, device and derived reporting information needed to authenticate installations and operate the live-user list.
+The shared service stores only the account, device and derived reporting information required to authenticate installations and operate the support list.
 
 This may include:
 
 - Streemrz user ID and username;
 - browser installation and extension identifiers;
 - device public-key information;
-- account and device status;
-- last reporting time; and
-- derived Rumble live and chatter status.
+- last reporting time;
+- current derived live status;
+- current derived Chatters value; and
+- current derived Watch Hours value.
 
-The shared service does **not** store:
+The shared service does **not** store your:
 
-- private Rumble API URL;
+- private Rumble Livestreaming API URL;
 - Rumble API key;
 - Rumble password;
 - Streemrz password;
 - MFA code;
-- dashboard cookies; or
+- Rumble dashboard cookies; or
 - browser session data.
 
 ## Device security
 
-Each browser installation has its own cryptographic identity.
+Each browser installation has its own cryptographic device identity.
 
-The private key is generated locally and stored as non-extractable. Requests are signed so the service can reject invalid, expired or replayed reports.
+The private key is generated locally and stored as non-extractable.
 
-There is no permanent global API secret embedded in Version 2 of the extension.
+Reports are signed so that the service can reject invalid, expired or replayed requests.
+
+There is no permanent shared API secret embedded in Version 3 of the extension.
 
 ---
 
 # Troubleshooting
 
-## Authentication was cancelled
+## Watch Hours shows Hours Streamed instead
 
-Close the cancelled-authentication tab and press **Authenticate with Streemrz** again.
+Upgrade to **Version 3.0.1 or later**.
 
-Every attempt creates a new short-lived authentication session. A failed or cancelled attempt cannot be resumed.
+Version 3.0.1 specifically anchors the parser to:
 
-## Authentication does not complete
+```text
+Hours watched this month
+```
 
-Try the following:
+and ignores other Creator Program hour metrics such as:
 
-1. Close the failed authentication tab.
-2. Return to Rumble Chatters Options.
-3. Press **Authenticate with Streemrz** again.
-4. Confirm that cookies and pop-ups are not being blocked for `streemrz.com`.
-5. Temporarily disable an ad blocker or privacy extension for the authentication page.
-6. Confirm that you completed the consent screen by pressing **Authorize**.
+```text
+Hours streamed from Rumble Studio this month
+```
 
-Do not paste passwords, MFA codes, OAuth links or private API URLs into a public support issue.
+After upgrading:
 
-## Options says authenticated but the popup list fails
+1. reload the extension from `chrome://extensions`;
+2. reload the Rumble earnings dashboard; and
+3. press refresh in Rumble Chatters.
 
-Confirm:
+Version 3.0.1 also clears the old cached Watch Hours value once during upgrade.
 
-- **Secure device connection** says **Enrolled**;
-- the Streemrz account says **Authenticated**;
-- **Save & Test** succeeds;
-- the browser extension was reloaded after upgrading; and
-- your internet connection can reach `chatters.streemrz.com`.
+---
 
-## The extension shows no local chatter value
+## A Watch Hours value contains K
 
-1. Open the Rumble earnings dashboard:
+This is normal Rumble formatting.
 
-   ```text
-   https://rumble.com/account/dashboard?type=earnings&interval=30
-   ```
+Examples:
 
-2. Wait for the page to load fully.
-3. Open the extension popup.
-4. Press refresh.
+```text
+5.41K = 5410
+1.2K  = 1200
+```
 
-The page must contain:
+The extension automatically converts compact values before comparing them with the 500-hour goal.
+
+---
+
+## Watch Hours has decimals
+
+Decimals are supported.
+
+Example:
+
+```text
+381.3 / 500
+```
+
+is treated as:
+
+```text
+381.3 current watch hours
+118.7 remaining watch hours
+```
+
+---
+
+## The extension shows no metrics
+
+Open:
+
+```text
+https://rumble.com/account/dashboard?type=earnings&interval=30
+```
+
+Wait until the Creator Program section has loaded completely, then press refresh.
+
+The page should contain both:
 
 ```text
 Total unique chatters this month
 ```
 
-A future Rumble interface change may require an extension update.
+and:
 
-## I am live but not shown in the shared list
+```text
+Hours watched this month
+```
+
+A future Rumble interface change may require an extension parser update.
+
+---
+
+## I am live but I do not see myself in the list
 
 Confirm:
 
-- the Rumble API URL is present and valid;
-- the URL uses HTTPS and belongs to `rumble.com`;
-- scheduled reporting is enabled;
+- your Rumble Livestreaming API URL is configured;
 - Streemrz authentication is complete;
-- the device is enrolled;
-- Rumble reports you as live;
-- the current chatter count is below the goal; and
+- the secure device connection is enrolled;
+- scheduled reporting is enabled;
+- Rumble currently reports you as live;
+- at least one of the two goals is still outstanding; and
 - a recent refresh or scheduled report has completed.
 
-A creator is not listed after the goal is achieved.
+If both goals are achieved, you are intentionally removed from the support list.
 
-## The live-user list is empty
+---
+
+## I see myself with a YOU badge
+
+That is expected.
+
+It confirms your current live report is visible through the shared support-list workflow.
+
+---
+
+## The live support list is empty
 
 This normally means no currently reporting creator is both:
 
 ```text
 live
-AND below target
+AND
+still below at least one goal
 ```
 
-## Audio does not play
+---
+
+## Authentication was cancelled
+
+Close the cancelled authentication tab and press **Authenticate with Streemrz** again.
+
+Each attempt creates a new short-lived authentication session.
+
+---
+
+## Authentication does not complete
+
+Try:
+
+1. close the failed authentication page;
+2. return to Rumble Chatters Options;
+3. press **Authenticate with Streemrz** again;
+4. make sure cookies and pop-ups are not blocked for `streemrz.com`;
+5. temporarily disable an ad blocker/privacy extension for the authentication page if necessary; and
+6. press **Authorize** on the Streemrz consent screen.
+
+Never paste passwords, MFA codes, OAuth callback URLs, or your private Rumble API URL into a public support issue.
+
+---
+
+## Goal audio does not play
 
 Confirm:
 
 - an audio file is selected;
 - volume is above zero;
-- **Play audio when goal is achieved** is enabled;
-- the goal changed from below target to achieved; and
-- the clip has not already played for that stream/month.
+- goal-achieved audio is enabled;
+- both monthly goals are achieved; and
+- the clip has not already played for the same stream/month.
 
-Use **Test Audio** in Options.
-
-## Avatar is missing
-
-The extension attempts common Rumble avatar fields and may fall back to initials when no safe image is available.
+Use **Test Audio** in Options to verify the selected file.
 
 ---
 
-# Adding screenshots
+# Suggested screenshots
 
 Store public screenshots under:
 
@@ -489,41 +800,65 @@ Suggested filenames:
 
 ```text
 01-chrome-load-unpacked.png
-02-extension-popup.png
-03-extension-options-authenticate.png
-04-streemrz-consent.png
-05-extension-authenticated.png
-06-rumble-api-configuration.png
-07-goal-audio-settings.png
+02-version-3-popup.png
+03-you-confidence-check.png
+04-authenticate-with-streemrz.png
+05-streemrz-consent.png
+06-authenticated-and-enrolled.png
+07-rumble-api-configuration.png
+08-goal-audio-settings.png
+09-dual-metrics.png
+10-both-goals-needed.png
+11-chatters-only-needed.png
+12-watch-hours-only-needed.png
 ```
 
-Before publishing a screenshot, hide or crop:
+Before publishing screenshots, hide or crop:
 
-- the private Rumble Livestreaming API URL;
-- activation or recovery codes;
-- OAuth query strings or callback URLs containing `code` or `state`;
-- backend client secrets;
+- your private Rumble Livestreaming API URL;
+- API keys;
+- activation/recovery codes;
+- OAuth callback URLs containing temporary `code` or `state` values;
 - browser credential identifiers;
 - email addresses or other personal information you do not intend to publish.
 
-Usernames and extension IDs are not passwords, but they should still be shown only when intentionally included.
+---
+
+# Version history
+
+## Version 3.0.1
+
+- Fixed Watch Hours parsing so it cannot be confused with Hours Streamed.
+- Added `K` and `M` compact-number conversion.
+- Preserved decimal Watch Hours values.
+- Clears the incorrect Version 3.0.0 Watch Hours cache once after upgrade.
+
+## Version 3.0.0
+
+- Added **Hours watched this month** as the second tracked goal.
+- Added dual-goal live-list reasons.
+- Added the **YOU** confidence-check marker.
+- Changed automatic reporting to a 10-minute interval.
+- Added live-only automatic dashboard metric capture.
+- Extended monthly rollover handling to both metrics.
+- Updated the extension footer to **Version 3**.
+
+## Version 2
+
+- Added Streemrz account authentication.
+- Added secure per-browser device identity.
+- Removed the permanent shared API secret.
+- Added first-of-month New York reset and rescan.
+- Added local goal-achieved audio.
+- Added **Open Dashboard** and **Open Options** controls.
+
+## Version 1
+
+Version 1 is retired and no longer supported by the shared Rumble Chatters service.
 
 ---
 
-# Version 2 highlights
-
-- Streemrz account authentication.
-- Secure per-browser device identity.
-- Signed reporting with replay protection.
-- First-of-month New York reset and rescan.
-- Prominent **Open Dashboard** and **Open Options** controls.
-- Local goal-achieved audio.
-- Improved popup layout, live-list sorting and avatar fallbacks.
-- **Version 2** footer with a Streemrz link.
-
----
-
-## Streemrz
+# Streemrz
 
 Project and service information:
 
