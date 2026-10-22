@@ -1,4 +1,4 @@
-# Rumble Chatters Goal Monitor — Version 3.0.1
+# Rumble Metrics Extension — Version 3.0.1
 
 A Chrome extension that helps live Rumble creators track the two monthly Creator Program metrics used by Rumble Chatters:
 
